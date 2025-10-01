@@ -1,0 +1,13 @@
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild*/
+[Ll]ogs/
+[Uu]serSettings/
+MemoryCaptures/
+SysInfo.txt
+*.csproj
+*.sln
+.vs/
+.idea/
+.vscode/
