@@ -20,6 +20,15 @@ public sealed class RigidbodyHandler : MonoBehaviour
         }
     }
 
+    public void ResetVelocity(GameObject cube)
+    {
+        if (cachedRigidbody != null)
+        {
+            cachedRigidbody.linearVelocity = Vector3.zero;
+            cachedRigidbody.angularVelocity = Vector3.zero;
+        }
+    }
+
     public Vector3 GetVelocity()
     {
         return cachedRigidbody != null ? cachedRigidbody.linearVelocity : Vector3.zero;
