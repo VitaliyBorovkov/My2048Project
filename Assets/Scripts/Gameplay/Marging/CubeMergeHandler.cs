@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
@@ -37,7 +36,24 @@ public sealed class CubeMergeHandler : MonoBehaviour
         {
             Debug.LogWarning($"{LOG}: Merge settings asset is not assigned on {gameObject.name}.");
         }
+    }
 
+    public Rigidbody Rigid => rigid;
+    public CubeLevel CubeLevel => cubeLevel;
+
+    public void BeginMerging()
+    {
+        isMerging = true;
+    }
+
+    public void EndMerging()
+    {
+        isMerging = false;
+    }
+
+    public void SetLastMergeTime(float time)
+    {
+        lastMergeTime = time;
     }
 
     public void ResetMergeState()
@@ -45,6 +61,7 @@ public sealed class CubeMergeHandler : MonoBehaviour
         isMerging = false;
         lastMergeTime = -999f;
     }
+
     private bool CanMergeNow()
     {
         return !isMerging && (Time.time - lastMergeTime) >= mergeCooldown;
@@ -73,11 +90,39 @@ public sealed class CubeMergeHandler : MonoBehaviour
         }
 
         LevelMergeRule levelMergeRule = GetRuleForCurrentLevel();
-        float searchRadius = levelMergeRule.mergeRadius > 0f ? levelMergeRule.mergeRadius : mergeSearchRadiusFallback;
+        float searchRadius = levelMergeRule.mergeRadius > 0f ? levelMergeRule.mergeRadius :
+            mergeSearchRadiusFallback;
 
         Vector3 origin = (collision.contacts != null && collision.contacts.Length > 0) ?
             collision.contacts[0].point : transform.position;
 
+        var candidates = CollectCandidates(origin, searchRadius, levelMergeRule);
+
+        if (candidates.Count < levelMergeRule.requiredCount)
+        {
+            return;
+        }
+
+        int maxId = int.MinValue;
+        foreach (var cube in candidates)
+        {
+            int id = cube.GetInstanceID();
+            if (id > maxId)
+            {
+                maxId = id;
+            }
+        }
+
+        if (GetInstanceID() != maxId)
+        {
+            return;
+        }
+
+        CubeMergeProcessor.PerformGroupMerge(this, candidates, levelMergeRule, mergeSettings, mergeCooldown);
+    }
+
+    private List<CubeMergeHandler> CollectCandidates(Vector3 origin, float searchRadius, LevelMergeRule levelMergeRule)
+    {
         Collider[] overlaps = Physics.OverlapSphere(origin, searchRadius, mergeMask, QueryTriggerInteraction.Ignore);
 
         var candidates = new List<CubeMergeHandler>(levelMergeRule.requiredCount);
@@ -94,7 +139,6 @@ public sealed class CubeMergeHandler : MonoBehaviour
             {
                 continue;
             }
-
             if (cubeMergeHandler.cubeLevel.Level != cubeLevel.Level)
             {
                 continue;
@@ -115,24 +159,7 @@ public sealed class CubeMergeHandler : MonoBehaviour
             }
         }
 
-        if (candidates.Count < levelMergeRule.requiredCount)
-        {
-            return;
-        }
-
-        int maxId = int.MinValue;
-        foreach (var cube in candidates)
-        {
-            int id = cube.GetInstanceID();
-            if (id > maxId) maxId = id;
-        }
-
-        if (GetInstanceID() != maxId)
-        {
-            return;
-        }
-
-        PerformGroupMerge(candidates, levelMergeRule);
+        return candidates;
     }
 
     private void TryPairMerge(CubeMergeHandler other, Collision collision, LevelMergeRule rule)
@@ -141,12 +168,10 @@ public sealed class CubeMergeHandler : MonoBehaviour
         {
             return;
         }
-
         if (!other.CanMergeNow() || !CanMergeNow())
         {
             return;
         }
-
         if (GetInstanceID() < other.GetInstanceID())
         {
             return;
@@ -156,134 +181,9 @@ public sealed class CubeMergeHandler : MonoBehaviour
             collision.contacts[0].point : (transform.position + other.transform.position) * 0.5f;
 
         var group = new List<CubeMergeHandler>(2) { this, other };
-        PerformGroupMerge(group, rule);
+        CubeMergeProcessor.PerformGroupMerge(this, group, rule, mergeSettings, mergeCooldown);
 
         transform.position = contactPoint;
-    }
-
-    private void PerformGroupMerge(List<CubeMergeHandler> cubeMerge, LevelMergeRule levelMergeRule)
-    {
-        if (cubeMerge == null || cubeMerge.Count == 0)
-        {
-            Debug.LogWarning($"{LOG}: Empty merge group.");
-            return;
-        }
-
-        CubeMergeHandler survivor = null;
-        int maxId = int.MinValue;
-        foreach (var cube in cubeMerge)
-        {
-            if (cube == null)
-            {
-                continue;
-            }
-
-            int id = cube.GetInstanceID();
-            if (id > maxId)
-            {
-                maxId = id;
-                survivor = cube;
-            }
-        }
-
-        if (survivor == null)
-        {
-            Debug.LogWarning($"{LOG}: No survivor found, aborting merge.");
-            return;
-        }
-
-
-        if (!cubeMerge.Contains(this))
-        {
-            Debug.LogWarning($"{LOG}: Initiator not in group, aborting merge.");
-            return;
-        }
-
-        foreach (var cube in cubeMerge)
-        {
-            cube.isMerging = true;
-        }
-
-        Vector3 avgPosition = Vector3.zero;
-        Vector3 avgVelocity = Vector3.zero;
-        float totalMass = 0f;
-
-        for (int i = 0; i < cubeMerge.Count; i++)
-        {
-            var cube = cubeMerge[i];
-            avgPosition += cube.transform.position;
-            if (cube.rigid != null)
-            {
-                avgVelocity += cube.rigid.linearVelocity;
-            }
-            totalMass += (cube.rigid != null ? cube.rigid.mass : 1f);
-        }
-
-        avgPosition /= cubeMerge.Count;
-        avgVelocity /= cubeMerge.Count;
-
-        survivor.transform.position = avgPosition;
-
-        var survivorLevel = survivor.cubeLevel;
-        if (survivorLevel != null)
-        {
-            survivorLevel.IncreaseLevel(1);
-        }
-
-        Rigidbody survivorRb = survivor.rigid;
-        if (survivorRb != null)
-        {
-            survivorRb.mass = totalMass;
-            survivorRb.linearVelocity = avgVelocity;
-            survivorRb.angularVelocity = Vector3.zero;
-        }
-
-        LevelMergeRule resultRule = levelMergeRule;
-        if (mergeSettings != null && survivorLevel != null)
-        {
-            resultRule = mergeSettings.GetRuleForLevel(survivorLevel.Level);
-        }
-
-        if (survivorLevel != null)
-        {
-            survivorLevel.SetColor(resultRule.resultColor);
-        }
-
-        survivor.lastMergeTime = Time.time;
-        lastMergeTime = Time.time;
-
-        for (int i = 0; i < cubeMerge.Count; i++)
-        {
-            var cube = cubeMerge[i];
-            if (cube == null)
-            {
-                continue;
-            }
-
-            if (cube == survivor)
-            {
-                continue;
-            }
-
-            var marker = cube.GetComponent<PooledObject>();
-            if (marker != null && marker.OwnerPool != null)
-            {
-                marker.OwnerPool.Despawn(cube.gameObject);
-            }
-        }
-
-        StartCoroutine(ResetMergingCoroutine(survivor));
-    }
-
-    private IEnumerator ResetMergingCoroutine(CubeMergeHandler handler)
-    {
-        if (handler == null)
-            yield break;
-
-        yield return new WaitForSeconds(Mathf.Max(0.01f, mergeCooldown));
-
-        handler.isMerging = false;
-        handler.lastMergeTime = Time.time;
     }
 
     private LevelMergeRule GetRuleForCurrentLevel()

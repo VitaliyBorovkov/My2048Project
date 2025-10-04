@@ -31,6 +31,7 @@ public sealed class CubeLevel : MonoBehaviour
         }
 
         materialProperty = new MaterialPropertyBlock();
+        defaultBaseColor = baseColor;
         ApplyVisual();
     }
 

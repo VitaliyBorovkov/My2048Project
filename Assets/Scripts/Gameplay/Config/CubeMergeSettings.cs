@@ -3,8 +3,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "CubeMergeSettings", menuName = "Gameplay/Cube Merge Settings", order = 100)]
 public sealed class CubeMergeSettings : ScriptableObject
 {
-    private const string LOG = "CubeMergeSettings";
-
     [Header("Defaults")]
     [Min(2)] public int defaultRequiredCount = 2;
     [Min(0.01f)] public float defaultMergeRadius = 0.6f;

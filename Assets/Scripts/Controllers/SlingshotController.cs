@@ -1,3 +1,5 @@
+using System.Collections;
+
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -7,15 +9,18 @@ public sealed class SlingshotController : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private SlingshotView slingshotView;
-    [SerializeField] private MonoBehaviour iPointerInputSource;
+    [SerializeField] private MonoBehaviour iPointerInput;
     [SerializeField] private CubeSpawner cubeSpawner;
     [SerializeField] private SlingshotAimer slingshotAimer;
     [SerializeField] private SlingshotLauncher slingshotLauncher;
 
     [Header("Flow")]
     [SerializeField] private float respawnDelay = 0.2f;
+    [SerializeField] private LayerMask pickMask = ~0;
+    [SerializeField] private float maxRayDistance = 1000f;
 
     private IPointerInput iInput;
+    private Coroutine respawnCoroutine;
     private readonly SlingshotModel slingshotModel = new SlingshotModel();
 
     private void Awake()
@@ -40,11 +45,35 @@ public sealed class SlingshotController : MonoBehaviour
             Debug.LogError($"{LOG}: SlingshotLauncher is not assigned!");
         }
 
-        iInput = iPointerInputSource as IPointerInput;
+        iInput = iPointerInput as IPointerInput;
         if (iInput == null)
         {
             Debug.LogError($"{LOG}: pointerInputSource must implement IPointerInput!");
         }
+    }
+
+    private void OnEnable()
+    {
+        if (iInput != null)
+        {
+            iInput.OnDown += HandlePointerDown;
+            iInput.OnHold += HandlePointerHold;
+            iInput.OnUp += HandlePointerUp;
+        }
+
+        CancelPendingRespawn();
+    }
+
+    private void OnDisable()
+    {
+        if (iInput != null)
+        {
+            iInput.OnDown -= HandlePointerDown;
+            iInput.OnHold -= HandlePointerHold;
+            iInput.OnUp -= HandlePointerUp;
+        }
+
+        CancelPendingRespawn();
     }
 
     private void Start()
@@ -52,33 +81,63 @@ public sealed class SlingshotController : MonoBehaviour
         SpawnReadyCube();
     }
 
-    private void Update()
+    //private void Update()
+    //{
+    //    if (slingshotView == null || iInput == null)
+    //    {
+    //        return;
+    //    }
+
+    //    switch (slingshotModel.State)
+    //    {
+    //        case SlingshotState.Idle:
+    //            if (iInput.IsDown() && PointerHitsCurrentCube())
+    //            {
+    //                slingshotModel.State = SlingshotState.Aiming;
+    //            }
+    //            break;
+
+    //        case SlingshotState.Aiming:
+    //            if (iInput.IsHeld())
+    //            {
+    //                slingshotAimer.UpdateAiming(iInput.GetScreenPosition(), slingshotModel.currentCube);
+    //            }
+    //            else if (iInput.IsUp())
+    //            {
+    //                FireAndScheduleRespawn();
+    //            }
+    //            break;
+    //    }
+    //}
+
+    private void HandlePointerDown(Vector3 screenPosition)
     {
-        if (slingshotView == null || iInput == null)
-        {
+        if (slingshotModel.State != SlingshotState.Idle)
             return;
-        }
 
-        switch (slingshotModel.State)
+        if (PointerHitsCurrentCube(screenPosition))
         {
-            case SlingshotState.Idle:
-                if (iInput.IsDown() && PointerHitsCurrentCube())
-                {
-                    slingshotModel.State = SlingshotState.Aiming;
-                }
-                break;
-
-            case SlingshotState.Aiming:
-                if (iInput.IsHeld())
-                {
-                    slingshotAimer.UpdateAiming(iInput.GetScreenPosition(), slingshotModel.currentCube);
-                }
-                else if (iInput.IsUp())
-                {
-                    FireAndScheduleRespawn();
-                }
-                break;
+            slingshotModel.State = SlingshotState.Aiming;
         }
+    }
+
+    private void HandlePointerHold(Vector3 screenPosition)
+    {
+        if (slingshotModel.State != SlingshotState.Aiming)
+            return;
+
+        if (slingshotAimer != null)
+        {
+            slingshotAimer.UpdateAiming(screenPosition, slingshotModel.currentCube);
+        }
+    }
+
+    private void HandlePointerUp(Vector3 screenPosition)
+    {
+        if (slingshotModel.State != SlingshotState.Aiming)
+            return;
+
+        FireAndScheduleRespawn();
     }
 
     private void SpawnReadyCube()
@@ -120,11 +179,41 @@ public sealed class SlingshotController : MonoBehaviour
         if (launched)
         {
             slingshotModel.Clear();
-            Invoke(nameof(SpawnReadyCube), respawnDelay);
+            ScheduleRespawn(respawnDelay);
+        }
+        else
+        {
+            slingshotModel.State = SlingshotState.Idle;
         }
     }
 
-    private bool PointerHitsCurrentCube()
+    private void ScheduleRespawn(float delay)
+    {
+        CancelPendingRespawn();
+        respawnCoroutine = StartCoroutine(RespawnCoroutine(delay));
+    }
+
+    private void CancelPendingRespawn()
+    {
+        if (respawnCoroutine != null)
+        {
+            StopCoroutine(respawnCoroutine);
+            respawnCoroutine = null;
+        }
+    }
+
+    private IEnumerator RespawnCoroutine(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (!this || !gameObject.activeInHierarchy)
+            yield break;
+
+        SpawnReadyCube();
+        respawnCoroutine = null;
+    }
+
+    private bool PointerHitsCurrentCube(Vector3 screenPosition)
     {
         if (slingshotModel.currentCube == null || slingshotView == null || slingshotView.MainCamera == null)
         {
@@ -132,7 +221,7 @@ public sealed class SlingshotController : MonoBehaviour
         }
 
         Ray ray = slingshotView.MainCamera.ScreenPointToRay(iInput.GetScreenPosition());
-        if (Physics.Raycast(ray, out var hit, 1000f, ~0, QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(ray, out var hit, maxRayDistance, pickMask, QueryTriggerInteraction.Ignore))
         {
             return hit.collider != null && hit.collider.transform.
                 IsChildOf(slingshotModel.currentCube.transform);
