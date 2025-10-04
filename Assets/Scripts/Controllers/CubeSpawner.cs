@@ -41,37 +41,10 @@ public sealed class CubeSpawner : MonoBehaviour
             return null;
         }
 
-        var pooledObject = cube.GetComponent<PooledObject>();
-        if (pooledObject == null)
-        {
-            pooledObject = cube.AddComponent<PooledObject>();
-            if (cubePool != null)
-            {
-                pooledObject.OwnerPool = cubePool;
-            }
-        }
-        else
-        {
-            if (pooledObject.OwnerPool == null && cubePool != null)
-            {
-                pooledObject.OwnerPool = cubePool;
-            }
-        }
-
-        var cubeMergeHandler = cube.GetComponent<CubeMergeHandler>();
-        if (cubeMergeHandler != null)
-        {
-            cubeMergeHandler.ResetMergeState();
-        }
-
+        PooledObjectAttacher.Attach(cube, cubePool);
+        CubeResetter.ResetState(cube);
+        PhysicsResetter.ResetVelocity(cube);
         CubeSpawnHelper.ApplyInitialLevel(cube);
-
-        var rigidbody = cube.GetComponent<Rigidbody>();
-        if (rigidbody != null)
-        {
-            rigidbody.linearVelocity = Vector3.zero;
-            rigidbody.angularVelocity = Vector3.zero;
-        }
 
         return cube;
     }

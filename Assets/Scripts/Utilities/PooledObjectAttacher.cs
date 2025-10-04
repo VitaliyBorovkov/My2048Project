@@ -4,7 +4,7 @@ public static class PooledObjectAttacher
 {
     public static void Attach(GameObject cube, CubePool owner)
     {
-        if (cube == null || owner == null)
+        if (cube == null)
         {
             return;
         }
@@ -15,6 +15,9 @@ public static class PooledObjectAttacher
             pooledObject = cube.AddComponent<PooledObject>();
         }
 
-        pooledObject.OwnerPool = owner;
+        if (owner != null)
+        {
+            pooledObject.OwnerPool = owner;
+        }
     }
 }

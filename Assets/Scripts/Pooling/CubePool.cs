@@ -15,9 +15,6 @@ public sealed class CubePool : MonoBehaviour
     [SerializeField] private Transform poolRoot;
     [SerializeField] private int extraObjectsInPool = 0;
 
-    [Header("RigidbodyHandler")]
-    [SerializeField] private RigidbodyHandler rigidbodyHandler;
-
     private readonly Queue<GameObject> pool = new Queue<GameObject>();
 
     private void Awake()
@@ -56,13 +53,6 @@ public sealed class CubePool : MonoBehaviour
             CubeResetter.ResetState(cube);
             pool.Enqueue(cube);
         }
-    }
-
-    public void ExpandPool(int count)
-    {
-        if (count <= 0) return;
-        PreparingPool(count);
-        Debug.Log($"{LOG}: Expanded pool by {count}. New size = {pool.Count}.");
     }
 
     public void AttachPooledObject(GameObject cube)
@@ -104,7 +94,7 @@ public sealed class CubePool : MonoBehaviour
         cube.transform.rotation = rotation;
         cube.SetActive(true);
 
-        rigidbodyHandler.ResetVelocity(cube);
+        PhysicsResetter.ResetVelocity(cube);
 
         CubeResetter.ResetState(cube);
 
@@ -119,7 +109,7 @@ public sealed class CubePool : MonoBehaviour
             return;
         }
 
-        rigidbodyHandler.ResetVelocity(cube);
+        PhysicsResetter.ResetVelocity(cube);
 
         CubeResetter.ResetState(cube);
 
@@ -127,4 +117,12 @@ public sealed class CubePool : MonoBehaviour
         cube.transform.SetParent(poolRoot, false);
         pool.Enqueue(cube);
     }
+
+    public void ExpandPool(int count)
+    {
+        if (count <= 0) return;
+        PreparingPool(count);
+        Debug.Log($"{LOG}: Expanded pool by {count}. New size = {pool.Count}.");
+    }
+
 }

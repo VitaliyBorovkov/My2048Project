@@ -1,9 +1,11 @@
+using System;
+
 using UnityEngine;
 
 public interface IPointerInput
 {
-    bool IsDown();
-    bool IsHeld();
-    bool IsUp();
+    event Action<Vector3> OnDown;
+    event Action<Vector3> OnHold;
+    event Action<Vector3> OnUp;
     Vector3 GetScreenPosition();
 }

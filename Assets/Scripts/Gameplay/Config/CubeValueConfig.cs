@@ -6,7 +6,7 @@ public sealed class CubeValueConfig : ScriptableObject
     private const string LOG = "CubeValueConfig";
 
     public bool useAutoPow2 = true;
-    [Min(1f)] public float defaultFontSize = 10f;
+    public float defaultFontSize = 10f;
     public LevelDisplayInfo[] perLevel = new LevelDisplayInfo[0];
 
     public string GetDisplayText(int level)
