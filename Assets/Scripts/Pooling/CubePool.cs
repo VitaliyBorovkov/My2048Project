@@ -6,12 +6,17 @@ public sealed class CubePool : MonoBehaviour
 {
     private const string LOG = "CubePool";
 
-    [Header("Pool settings")]
+    [Header("Prefab")]
     [SerializeField] private GameObject cubePrefab;
+
+    [Header("Pool settings")]
     [SerializeField] private int initialPoolSize = 10;
     [SerializeField] private bool allowGrowth = true;
     [SerializeField] private Transform poolRoot;
     [SerializeField] private int extraObjectsInPool = 0;
+
+    [Header("RigidbodyHandler")]
+    [SerializeField] private RigidbodyHandler rigidbodyHandler;
 
     private readonly Queue<GameObject> pool = new Queue<GameObject>();
 
@@ -48,19 +53,7 @@ public sealed class CubePool : MonoBehaviour
             var cube = Instantiate(cubePrefab, poolRoot);
             AttachPooledObject(cube);
             PreparePooledObject(cube);
-
-            var сubeMergeHandler = cube.GetComponent<CubeMergeHandler>();
-            if (сubeMergeHandler != null)
-            {
-                сubeMergeHandler.ResetMergeState();
-            }
-
-            var cubeLevel = cube.GetComponent<CubeLevel>();
-            if (cubeLevel != null)
-            {
-                cubeLevel.ResetVisualToDefault();
-            }
-
+            CubeResetter.ResetState(cube);
             pool.Enqueue(cube);
         }
     }
@@ -74,17 +67,7 @@ public sealed class CubePool : MonoBehaviour
 
     public void AttachPooledObject(GameObject cube)
     {
-        if (cube == null)
-        {
-            return;
-        }
-
-        var pooledObject = cube.GetComponent<PooledObject>();
-        if (pooledObject == null)
-        {
-            pooledObject = cube.AddComponent<PooledObject>();
-        }
-        pooledObject.OwnerPool = this;
+        PooledObjectAttacher.Attach(cube, this);
     }
 
     private void PreparePooledObject(GameObject cube)
@@ -121,24 +104,9 @@ public sealed class CubePool : MonoBehaviour
         cube.transform.rotation = rotation;
         cube.SetActive(true);
 
-        var rigidbody = cube.GetComponent<Rigidbody>();
-        if (rigidbody != null)
-        {
-            rigidbody.linearVelocity = Vector3.zero;
-            rigidbody.angularVelocity = Vector3.zero;
-        }
+        rigidbodyHandler.ResetVelocity(cube);
 
-        var cubeMergeHandler = cube.GetComponent<CubeMergeHandler>();
-        if (cubeMergeHandler != null)
-        {
-            cubeMergeHandler.ResetMergeState();
-        }
-
-        var cubeLevel = cube.GetComponent<CubeLevel>();
-        if (cubeLevel != null)
-        {
-            cubeLevel.ResetVisualToDefault();
-        }
+        CubeResetter.ResetState(cube);
 
         return cube;
     }
@@ -151,24 +119,9 @@ public sealed class CubePool : MonoBehaviour
             return;
         }
 
-        var rigidbody = cube.GetComponent<Rigidbody>();
-        if (rigidbody != null)
-        {
-            rigidbody.linearVelocity = Vector3.zero;
-            rigidbody.angularVelocity = Vector3.zero;
-        }
+        rigidbodyHandler.ResetVelocity(cube);
 
-        var cubeMergeHandler = cube.GetComponent<CubeMergeHandler>();
-        if (cubeMergeHandler != null)
-        {
-            cubeMergeHandler.ResetMergeState();
-        }
-
-        var cubeLevel = cube.GetComponent<CubeLevel>();
-        if (cubeLevel != null)
-        {
-            cubeLevel.ResetVisualToDefault();
-        }
+        CubeResetter.ResetState(cube);
 
         cube.SetActive(false);
         cube.transform.SetParent(poolRoot, false);
