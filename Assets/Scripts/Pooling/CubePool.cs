@@ -113,6 +113,11 @@ public sealed class CubePool : MonoBehaviour
 
         CubeResetter.ResetState(cube);
 
+        if (cube.TryGetComponent<PlayableCube>(out var playable))
+        {
+            playable.ResetPlayable();
+        }
+
         cube.SetActive(false);
         cube.transform.SetParent(poolRoot, false);
         pool.Enqueue(cube);
