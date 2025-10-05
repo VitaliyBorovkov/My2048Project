@@ -120,9 +120,10 @@ public sealed class CubePool : MonoBehaviour
 
     public void ExpandPool(int count)
     {
-        if (count <= 0) return;
+        if (count <= 0)
+        {
+            return;
+        }
         PreparingPool(count);
-        Debug.Log($"{LOG}: Expanded pool by {count}. New size = {pool.Count}.");
     }
-
 }
