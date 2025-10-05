@@ -20,5 +20,11 @@ public static class CubeResetter
         {
             cubeLevel.ResetVisualToDefault();
         }
+
+        if (cube.TryGetComponent<PlayableCube>(out var playable))
+        {
+            playable.ResetPlayable();
+            Debug.Log($"CubeResetter: ResetPlayable on {cube.name}");
+        }
     }
 }

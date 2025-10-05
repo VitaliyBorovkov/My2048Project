@@ -48,7 +48,6 @@ public class GameStateMachine : MonoBehaviour
     public void ToGameOver()
     {
         gameStateController.ToGameOver();
-        Debug.Log($"{LOG}: ToGameOver requested.");
     }
 
     public void ToPause()
