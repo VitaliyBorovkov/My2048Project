@@ -9,7 +9,6 @@ public class AudioManager : MonoBehaviour
     private AudioSource musicSource;
     private AudioSource sfxSource;
 
-
     private void Awake()
     {
         var existing = FindObjectsByType<AudioManager>(FindObjectsSortMode.None);
