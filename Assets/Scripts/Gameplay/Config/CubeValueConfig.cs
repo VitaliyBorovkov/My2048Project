@@ -3,8 +3,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "CubeValueConfig", menuName = "Gameplay/Cube Value Config", order = 120)]
 public sealed class CubeValueConfig : ScriptableObject
 {
-    private const string LOG = "CubeValueConfig";
-
     public bool useAutoPow2 = true;
     public float defaultFontSize = 10f;
     public LevelDisplayInfo[] perLevel = new LevelDisplayInfo[0];

@@ -2,8 +2,6 @@ using UnityEngine;
 
 public sealed class GameplayState : IGameState
 {
-    private const string LOG = "GameplayState";
-
     private readonly GameStateContext GameStateContext;
 
     public GameplayState(GameStateContext gameStateContext)
@@ -16,7 +14,6 @@ public sealed class GameplayState : IGameState
         Time.timeScale = 1f;
         GameStateContext.PauseUI?.HideScreen();
         GameStateContext.GameOverUI?.HideScreen();
-        GameStateContext.SetCursor(false);
     }
 
     public void ExitState()

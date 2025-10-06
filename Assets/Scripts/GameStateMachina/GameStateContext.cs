@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public sealed class GameStateContext
 {
     public readonly GameOverUI GameOverUI;
@@ -9,11 +7,5 @@ public sealed class GameStateContext
     {
         GameOverUI = gameOverUI;
         PauseUI = pauseUI;
-    }
-
-    public void SetCursor(bool visible)
-    {
-        Cursor.lockState = visible ? CursorLockMode.None : CursorLockMode.Locked;
-        Cursor.visible = visible;
     }
 }

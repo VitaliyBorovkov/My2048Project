@@ -7,19 +7,21 @@ public sealed class CubeMergeHandler : MonoBehaviour
     private const string LOG = "CubeMergeHandler";
 
     [Header("Settings")]
-    [SerializeField] private CubeMergeSettings mergeSettings;
     [SerializeField] private float mergeSearchRadiusFallback = 0.6f;
     [SerializeField] private float mergeCooldown = 0.12f;
     [SerializeField] private LayerMask mergeMask;
 
-    private CubeLevel cubeLevel;
+    [Header("References")]
+    [SerializeField] private CubeMergeSettings mergeSettings;
+    [SerializeField] private CubeLevel cubeLevel;
+
+    private ScoreService scoreService;
     private Rigidbody rigid;
     private float lastMergeTime;
     private bool isMerging;
 
     private void Awake()
     {
-        cubeLevel = GetComponent<CubeLevel>();
         rigid = GetComponent<Rigidbody>();
 
         if (cubeLevel == null)
@@ -36,6 +38,11 @@ public sealed class CubeMergeHandler : MonoBehaviour
         {
             Debug.LogWarning($"{LOG}: Merge settings asset is not assigned on {gameObject.name}.");
         }
+    }
+
+    public void SetScoreService(ScoreService scoreService)
+    {
+        this.scoreService = scoreService;
     }
 
     public Rigidbody Rigid => rigid;
@@ -118,7 +125,8 @@ public sealed class CubeMergeHandler : MonoBehaviour
             return;
         }
 
-        CubeMergeProcessor.PerformGroupMerge(this, candidates, levelMergeRule, mergeSettings, mergeCooldown);
+        CubeMergeProcessor.PerformGroupMerge(this, candidates, levelMergeRule, mergeSettings,
+            mergeCooldown, scoreService);
     }
 
     private List<CubeMergeHandler> CollectCandidates(Vector3 origin, float searchRadius, LevelMergeRule levelMergeRule)
@@ -181,7 +189,7 @@ public sealed class CubeMergeHandler : MonoBehaviour
             collision.contacts[0].point : (transform.position + other.transform.position) * 0.5f;
 
         var group = new List<CubeMergeHandler>(2) { this, other };
-        CubeMergeProcessor.PerformGroupMerge(this, group, rule, mergeSettings, mergeCooldown);
+        CubeMergeProcessor.PerformGroupMerge(this, group, rule, mergeSettings, mergeCooldown, scoreService);
 
         transform.position = contactPoint;
     }

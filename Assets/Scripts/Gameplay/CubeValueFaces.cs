@@ -1,3 +1,5 @@
+using System.Collections;
+
 using TMPro;
 
 using UnityEngine;
@@ -44,8 +46,6 @@ public class CubeValueFaces : MonoBehaviour
         {
             cubeLevel.OnLevelChanged += HandleLevelChanged;
         }
-
-        UpdateDisplay(cubeLevel != null ? cubeLevel.Level : 1);
     }
 
     private void OnDisable()
@@ -54,6 +54,17 @@ public class CubeValueFaces : MonoBehaviour
         {
             cubeLevel.OnLevelChanged -= HandleLevelChanged;
         }
+    }
+
+    private void Start()
+    {
+        StartCoroutine(DelayedInitialUpdate());
+    }
+
+    private IEnumerator DelayedInitialUpdate()
+    {
+        yield return null;
+        UpdateDisplay(cubeLevel != null ? cubeLevel.Level : 1);
     }
 
     private void HandleLevelChanged(int newLevel)
@@ -79,7 +90,7 @@ public class CubeValueFaces : MonoBehaviour
 
                 if (faceText.text != text)
                 {
-                    faceText.text = text;
+                    faceText.SetText(text);
                 }
 
                 if (fontSize > 0f && !Mathf.Approximately(faceText.fontSize, fontSize))

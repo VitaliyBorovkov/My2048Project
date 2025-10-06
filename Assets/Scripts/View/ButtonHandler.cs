@@ -77,7 +77,7 @@ public class ButtonHandler : MonoBehaviour
 
     public void RestartScene()
     {
-        Debug.Log($"{LOG}: Restart current scene.");
+        //Debug.Log($"{LOG}: Restart current scene.");
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }

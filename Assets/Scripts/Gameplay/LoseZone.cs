@@ -2,8 +2,6 @@ using UnityEngine;
 
 public class LoseZone : MonoBehaviour
 {
-    private const string LOG = "LoseZone";
-
     [SerializeField] private GameStateMachine gameStateMachine;
 
     private bool triggered;
@@ -32,12 +30,9 @@ public class LoseZone : MonoBehaviour
 
     private void TriggerGameOver(GameObject culprit)
     {
-        Debug.Log($"{LOG}: playable object crossed lose zone -> '{culprit.name}'.");
-
         if (gameStateMachine != null)
         {
             gameStateMachine.ToGameOver();
-            Debug.Log($"{LOG}: requested GameStateMachine.ToGameOver()");
         }
 
         triggered = true;
