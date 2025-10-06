@@ -7,6 +7,7 @@ public sealed class CubeSpawner : MonoBehaviour
     [Header("References")]
     [SerializeField] private CubePool cubePool;
     [SerializeField] private GameObject fallbackPrefab;
+    [SerializeField] private ScoreService scoreService;
 
     public GameObject SpawnAt(Transform spawnPoint)
     {
@@ -45,8 +46,24 @@ public sealed class CubeSpawner : MonoBehaviour
         CubeResetter.ResetState(cube);
         PhysicsResetter.ResetVelocity(cube);
         CubeSpawnHelper.ApplyInitialLevel(cube);
+        InjectScoreServiceToCube(cube);
 
         return cube;
+    }
+
+    private void InjectScoreServiceToCube(GameObject cube)
+    {
+        if (cube == null)
+            return;
+
+        var cubeMergeHandler = cube.GetComponent<CubeMergeHandler>();
+        if (cubeMergeHandler != null)
+        {
+            if (scoreService != null)
+            {
+                cubeMergeHandler.SetScoreService(scoreService);
+            }
+        }
     }
 
     public static void Release(GameObject cube)

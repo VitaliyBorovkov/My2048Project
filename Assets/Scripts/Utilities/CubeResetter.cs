@@ -24,7 +24,6 @@ public static class CubeResetter
         if (cube.TryGetComponent<PlayableCube>(out var playable))
         {
             playable.ResetPlayable();
-            Debug.Log($"CubeResetter: ResetPlayable on {cube.name}");
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -7,8 +8,12 @@ public static class CubeMergeProcessor
 {
     private const string LOG = "CubeMergeProcessor";
 
+    //public static event Action<GameObject, int> MergeCompleted;
+
+    public static event Action<GameObject, int, int, int[]> MergeCompletedDetailed;
+
     public static void PerformGroupMerge(MonoBehaviour owner, List<CubeMergeHandler> cubeMerge,
-        LevelMergeRule levelMergeRule, CubeMergeSettings mergeSettings, float mergeCooldown)
+        LevelMergeRule levelMergeRule, CubeMergeSettings mergeSettings, float mergeCooldown, ScoreService scoreService)
     {
         if (owner == null)
         {
@@ -87,58 +92,77 @@ public static class CubeMergeProcessor
         var survivorLevel = survivor.CubeLevel;
         if (survivorLevel != null)
         {
+            int[] sourceLevels = new int[cubeMerge.Count];
+            for (int i = 0; i < cubeMerge.Count; i++)
+            {
+                var c = cubeMerge[i];
+                sourceLevels[i] = (c != null && c.CubeLevel != null) ? c.CubeLevel.Level : -1;
+            }
+
             survivorLevel.IncreaseLevel(1);
-        }
 
-        Rigidbody survivorRb = survivor.Rigid;
-        if (survivorRb != null)
-        {
-            survivorRb.mass = totalMass;
-            survivorRb.linearVelocity = avgVelocity;
-            survivorRb.angularVelocity = Vector3.zero;
-        }
+            int resultLevel = survivorLevel.Level;
+            int mergedValue = 1 << resultLevel;
 
-        LevelMergeRule resultRule = levelMergeRule;
-        if (mergeSettings != null && survivorLevel != null)
-        {
-            resultRule = mergeSettings.GetRuleForLevel(survivorLevel.Level);
-        }
-
-        if (survivorLevel != null)
-        {
-            survivorLevel.SetColor(resultRule.resultColor);
-        }
-
-        float now = Time.time;
-        foreach (var cube in cubeMerge)
-        {
-            if (cube == null)
+            int awardedPoints = 0;
+            if (scoreService != null)
             {
-                continue;
-            }
-            cube.SetLastMergeTime(now);
-        }
-
-        for (int i = 0; i < cubeMerge.Count; i++)
-        {
-            var cube = cubeMerge[i];
-            if (cube == null)
-            {
-                continue;
-            }
-            if (cube == survivor)
-            {
-                continue;
+                awardedPoints = scoreService.AddPointsForResultLevel(resultLevel);
             }
 
-            var marker = cube.GetComponent<PooledObject>();
-            if (marker != null && marker.OwnerPool != null)
-            {
-                marker.OwnerPool.Despawn(cube.gameObject);
-            }
-        }
+            //MergeCompleted?.Invoke(survivor.gameObject, survivorLevel.Level);
+            MergeCompletedDetailed?.Invoke(survivor.gameObject, resultLevel, awardedPoints, sourceLevels);
 
-        owner.StartCoroutine(ResetMergingCoroutine(survivor, mergeCooldown));
+            Rigidbody survivorRb = survivor.Rigid;
+            if (survivorRb != null)
+            {
+                survivorRb.mass = totalMass;
+                survivorRb.linearVelocity = avgVelocity;
+                survivorRb.angularVelocity = Vector3.zero;
+            }
+
+            LevelMergeRule resultRule = levelMergeRule;
+            if (mergeSettings != null && survivorLevel != null)
+            {
+                resultRule = mergeSettings.GetRuleForLevel(survivorLevel.Level);
+            }
+
+            if (survivorLevel != null)
+            {
+                survivorLevel.SetColor(resultRule.resultColor);
+            }
+
+            float now = Time.time;
+            foreach (var cube in cubeMerge)
+            {
+                if (cube == null)
+                {
+                    continue;
+                }
+                cube.SetLastMergeTime(now);
+            }
+
+            for (int i = 0; i < cubeMerge.Count; i++)
+            {
+                var cube = cubeMerge[i];
+                if (cube == null)
+                {
+                    continue;
+                }
+                if (cube == survivor)
+                {
+                    continue;
+                }
+
+                var marker = cube.GetComponent<PooledObject>();
+                if (marker != null && marker.OwnerPool != null)
+                {
+                    marker.OwnerPool.Despawn(cube.gameObject);
+                }
+            }
+
+            owner.StartCoroutine(ResetMergingCoroutine(survivor, mergeCooldown));
+        }
     }
 
     public static IEnumerator ResetMergingCoroutine(CubeMergeHandler handler, float mergeCooldown)

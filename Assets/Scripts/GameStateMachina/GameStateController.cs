@@ -44,7 +44,6 @@ public class GameStateController
         current = next;
         CurrentStateId = stateId;
         current.EnterState();
-        Debug.Log($"{LOG}: state -> {CurrentStateId}");
     }
 
     public bool IsInState(GameStateId stateId)

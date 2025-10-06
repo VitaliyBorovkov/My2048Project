@@ -16,7 +16,7 @@ public sealed class SlingshotController : MonoBehaviour
 
     [Header("Flow")]
     [SerializeField] private float respawnDelay = 0.2f;
-    [SerializeField] private LayerMask pickMask = ~0;
+    [SerializeField] private LayerMask pickMask;
     [SerializeField] private float maxRayDistance = 1000f;
 
     private IPointerInput iInput;
@@ -206,7 +206,7 @@ public sealed class SlingshotController : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
 
-        if (!this || !gameObject.activeInHierarchy)
+        if (!isActiveAndEnabled || !gameObject.activeInHierarchy)
             yield break;
 
         SpawnReadyCube();

@@ -2,7 +2,6 @@ using System;
 
 using UnityEngine;
 
-[DisallowMultipleComponent]
 public sealed class CubeLevel : MonoBehaviour
 {
     private const string LOG = "CubeLevel";

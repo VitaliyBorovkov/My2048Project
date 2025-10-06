@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class PlayAreaWatcher : MonoBehaviour
 {
-    private const string LOG = "PlayAreaWatcher";
-
     [SerializeField] private string cubeTag = "Cube";
 
     private readonly List<IPlayAreaObserver> observers = new List<IPlayAreaObserver>();
@@ -29,7 +27,6 @@ public class PlayAreaWatcher : MonoBehaviour
         if (!collider.TryGetComponent<PlayableCube>(out var playableCube))
         {
             playableCube = collider.gameObject.AddComponent<PlayableCube>();
-            Debug.Log($"{LOG}: Marked playable -> {collider.gameObject.name}");
         }
         playableCube.Mark();
         NotifyMarked(collider.gameObject);

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameStateMachine : MonoBehaviour
 {
@@ -7,6 +8,9 @@ public class GameStateMachine : MonoBehaviour
     [Header("Screens")]
     [SerializeField] private GameOverUI gameOverUI;
     [SerializeField] private PauseUI pauseUI;
+
+    [Header("Pause button")]
+    [SerializeField] private Button pauseButton;
 
     private GameStateContext gameStateContext;
     private GameStateController gameStateController;
@@ -28,6 +32,11 @@ public class GameStateMachine : MonoBehaviour
 
         pauseUI?.HideScreen();
         gameOverUI?.HideScreen();
+
+        if (pauseButton != null)
+        {
+            pauseButton.gameObject.SetActive(true);
+        }
     }
 
     private void Start()
@@ -43,20 +52,27 @@ public class GameStateMachine : MonoBehaviour
     public void ToGameplay()
     {
         gameStateController.ToGameplay();
+        if (pauseButton != null)
+        {
+            pauseButton.gameObject.SetActive(true);
+        }
     }
 
     public void ToGameOver()
     {
         gameStateController.ToGameOver();
+        if (pauseButton != null)
+        {
+            pauseButton.gameObject.SetActive(false);
+        }
     }
 
     public void ToPause()
     {
         gameStateController.ToPause();
-    }
-
-    public void SetCursor(bool show)
-    {
-        gameStateContext.SetCursor(show);
+        if (pauseButton != null)
+        {
+            pauseButton.gameObject.SetActive(false);
+        }
     }
 }

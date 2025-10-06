@@ -40,6 +40,21 @@ public sealed class SlingshotView : MonoBehaviour
             return;
         }
 
+        var rb = cube.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            // MovePosition безопаснее для объектов с Rigidbody, Unity применит это в FixedUpdate
+            try
+            {
+                rb.MovePosition(worldPosition);
+                return;
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"{LOG}: MovePosition failed: {ex.Message}. Fallback to transform.position.");
+            }
+        }
+
         cube.transform.position = worldPosition;
     }
 
