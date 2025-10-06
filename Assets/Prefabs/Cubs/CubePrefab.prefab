@@ -932,6 +932,7 @@ GameObject:
   - component: {fileID: 562165293341000960}
   - component: {fileID: 842369716326642360}
   - component: {fileID: -1028074393522690340}
+  - component: {fileID: 4633563953027293666}
   - component: {fileID: 5350086099509355220}
   m_Layer: 6
   m_Name: CubePrefab
@@ -1092,6 +1093,18 @@ MonoBehaviour:
     m_Bits: 0
   mergeSettings: {fileID: 11400000, guid: 76de01276de653e4a9e214f3a88e43ce, type: 2}
   cubeLevel: {fileID: 842369716326642360}
+--- !u!114 &4633563953027293666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4891233473568320451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe6eacfd4cb90a64dbc5d2184fba950e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &5350086099509355220
 MonoBehaviour:
   m_ObjectHideFlags: 0
