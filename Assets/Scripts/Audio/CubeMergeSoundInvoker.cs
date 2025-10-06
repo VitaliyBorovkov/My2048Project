@@ -8,7 +8,7 @@ public class CubeMergeSoundInvoker : MonoBehaviour
 
     private void Awake()
     {
-        audioManager = FindObjectOfType<AudioManager>();
+        audioManager = FindAnyObjectByType<AudioManager>();
         if (audioManager == null)
         {
             Debug.LogWarning($"{LOG}: AudioManager not found. Merge SFX won't play until AudioManager exists.");

@@ -11,12 +11,15 @@ public class AudioManager : MonoBehaviour
 
     private void Awake()
     {
-        var existing = FindObjectsOfType<AudioManager>();
-        if (existing.Length > 1)
+        var existing = FindObjectsByType<AudioManager>(FindObjectsSortMode.None);
+        foreach (var item in existing)
         {
-            Debug.Log($"{LOG}: Another AudioManager exists. Destroying duplicate.");
-            Destroy(gameObject);
-            return;
+            if (item != this)
+            {
+                Debug.Log($"{LOG}: Another AudioManager exists. Destroying duplicate.");
+                Destroy(gameObject);
+                return;
+            }
         }
 
         DontDestroyOnLoad(gameObject);
