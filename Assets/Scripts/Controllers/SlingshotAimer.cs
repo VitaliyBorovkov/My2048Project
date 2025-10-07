@@ -7,6 +7,7 @@ public sealed class SlingshotAimer : MonoBehaviour
     [SerializeField] private SlingshotView slingshotView;
     [SerializeField] private float maxPullDistance = 3f;
     [SerializeField] private LayerMask aimMask;
+    [SerializeField] private float minPullToAim = 0.25f;
 
     private Camera mainCamera;
     private Transform spawnPoint;
@@ -26,6 +27,21 @@ public sealed class SlingshotAimer : MonoBehaviour
         }
 
         Vector3 aimPoint = AimingService.GetAimWorldPoint(mainCamera, screenPosition, spawnPoint, aimMask);
+
+        Vector3 delta = aimPoint - spawnPoint.position;
+
+        if (delta.sqrMagnitude < (minPullToAim * minPullToAim))
+        {
+            return;
+        }
+
+        Vector3 direction = delta.normalized;
+        float dot = Vector3.Dot(direction, spawnPoint.forward);
+        if (dot >= 0f)
+        {
+            return;
+        }
+
         Vector3 clamped = AimingService.ClampPull(aimPoint, spawnPoint.position, maxPullDistance);
 
         slingshotView.SetCubePosition(currentCube, clamped);

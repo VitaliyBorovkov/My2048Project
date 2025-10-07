@@ -1086,11 +1086,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fadfc6091c1f6ed448226f22334fdf6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mergeSearchRadiusFallback: 0.6
+  mergeSearchRadiusFallback: 1.5
   mergeCooldown: 0.12
   mergeMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   mergeSettings: {fileID: 11400000, guid: 76de01276de653e4a9e214f3a88e43ce, type: 2}
   cubeLevel: {fileID: 842369716326642360}
 --- !u!114 &4633563953027293666
