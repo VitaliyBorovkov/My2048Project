@@ -2,6 +2,8 @@ using UnityEngine;
 
 public static class AimingService
 {
+    private const float maxRay = 1000f;
+
     public static Vector3 GetAimWorldPoint(Camera camera, Vector3 pointerScreenPosition,
         Transform spawnPoint, LayerMask aimMask)
     {
@@ -11,7 +13,7 @@ public static class AimingService
         }
 
         Ray ray = camera.ScreenPointToRay(pointerScreenPosition);
-        if (Physics.Raycast(ray, out var hit, 1000f, aimMask, QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(ray, out var hit, maxRay, aimMask, QueryTriggerInteraction.Ignore))
         {
             return hit.point;
         }
@@ -22,12 +24,8 @@ public static class AimingService
 
     public static Vector3 ClampPull(Vector3 target, Vector3 spawnPosition, float maxPullDistance)
     {
-        Vector3 delta = target - spawnPosition;
-        float squareMax = maxPullDistance * maxPullDistance;
-        if (delta.sqrMagnitude <= squareMax)
-        {
-            return target;
-        }
-        return spawnPosition + delta.normalized * maxPullDistance;
+        Vector3 direction = target - spawnPosition;
+        float sqare = maxPullDistance * maxPullDistance;
+        return direction.sqrMagnitude <= sqare ? target : spawnPosition + direction.normalized * maxPullDistance;
     }
 }
