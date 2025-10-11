@@ -95,7 +95,6 @@ public sealed class CubePool : MonoBehaviour
         cube.SetActive(true);
 
         PhysicsResetter.ResetVelocity(cube);
-
         CubeResetter.ResetState(cube);
 
         return cube;

@@ -8,8 +8,6 @@ public static class CubeMergeProcessor
 {
     private const string LOG = "CubeMergeProcessor";
 
-    //public static event Action<GameObject, int> MergeCompleted;
-
     public static event Action<GameObject, int, int, int[]> MergeCompletedDetailed;
 
     public static void PerformGroupMerge(MonoBehaviour owner, List<CubeMergeHandler> cubeMerge,
@@ -110,7 +108,6 @@ public static class CubeMergeProcessor
                 awardedPoints = scoreService.AddPointsForResultLevel(resultLevel);
             }
 
-            //MergeCompleted?.Invoke(survivor.gameObject, survivorLevel.Level);
             MergeCompletedDetailed?.Invoke(survivor.gameObject, resultLevel, awardedPoints, sourceLevels);
 
             Rigidbody survivorRb = survivor.Rigid;

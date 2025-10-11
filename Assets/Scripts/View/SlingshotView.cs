@@ -9,11 +9,15 @@ public sealed class SlingshotView : MonoBehaviour
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private Camera mainCamera;
 
+    [Header("Spawn")]
+    [SerializeField] private float spawnHeightOffset = 0f;
+
     [Header("Debug")]
     [SerializeField] private bool drawAimLine = true;
 
     public Transform SpawnPoint => spawnPoint;
     public Camera MainCamera => mainCamera;
+    public float SpawnHeightOffset => spawnHeightOffset;
 
     private void Reset()
     {
@@ -40,19 +44,16 @@ public sealed class SlingshotView : MonoBehaviour
             return;
         }
 
-        var rb = cube.GetComponent<Rigidbody>();
-        if (rb != null)
+        var rigidbody = cube.GetComponent<Rigidbody>();
+        if (rigidbody != null)
         {
-            // MovePosition безопаснее для объектов с Rigidbody, Unity применит это в FixedUpdate
-            try
+            if (rigidbody.isKinematic)
             {
-                rb.MovePosition(worldPosition);
+                cube.transform.position = worldPosition;
                 return;
             }
-            catch (System.Exception ex)
-            {
-                Debug.LogWarning($"{LOG}: MovePosition failed: {ex.Message}. Fallback to transform.position.");
-            }
+            rigidbody.MovePosition(worldPosition);
+            return;
         }
 
         cube.transform.position = worldPosition;

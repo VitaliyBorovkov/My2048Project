@@ -16,4 +16,4 @@ MonoBehaviour:
   musicLoop: 1
   musicVolume: 1
   cubeMergeSound: {fileID: 8300000, guid: 074ce230a15470444b5bf117c2dd0d82, type: 3}
-  sfxVolume: 0.371
+  sfxVolume: 0.205
