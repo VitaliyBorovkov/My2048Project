@@ -9,6 +9,9 @@ public class AudioManager : MonoBehaviour
     private AudioSource musicSource;
     private AudioSource sfxSource;
 
+    private float runtimeMusicVolume;
+    private float runtimeSfxVolume;
+
     private void Awake()
     {
         var existing = FindObjectsByType<AudioManager>(FindObjectsSortMode.None);
@@ -29,6 +32,14 @@ public class AudioManager : MonoBehaviour
             Debug.LogError($"{LOG}: audioSettings is not assigned in inspector.");
             return;
         }
+
+        runtimeMusicVolume = PlayerPrefs.HasKey(PlayerPrefsKeys.MusicVolumeKey)
+          ? PlayerPrefs.GetFloat(PlayerPrefsKeys.MusicVolumeKey)
+          : 1f;
+
+        runtimeSfxVolume = PlayerPrefs.HasKey(PlayerPrefsKeys.SfxVolumeKey)
+            ? PlayerPrefs.GetFloat(PlayerPrefsKeys.SfxVolumeKey)
+            : 1f;
 
         musicSource = gameObject.AddComponent<AudioSource>();
         musicSource.playOnAwake = false;
@@ -94,5 +105,39 @@ public class AudioManager : MonoBehaviour
 
         sfxSource.volume = Mathf.Clamp01(audioSettings.sfxVolume);
         sfxSource.PlayOneShot(clip);
+    }
+
+    public void SetMusicVolume(float value)
+    {
+        runtimeMusicVolume = Mathf.Clamp01(value);
+        if (musicSource != null)
+        {
+            musicSource.volume = runtimeMusicVolume;
+        }
+
+        PlayerPrefs.SetFloat(PlayerPrefsKeys.MusicVolumeKey, runtimeMusicVolume);
+    }
+
+    public float GetMusicVolume()
+    {
+        return runtimeMusicVolume;
+    }
+
+    public void SetSfxVolume(float value)
+    {
+        runtimeSfxVolume = Mathf.Clamp01(value);
+        if (sfxSource != null)
+        {
+            sfxSource.volume = runtimeSfxVolume;
+        }
+
+        PlayerPrefs.SetFloat(PlayerPrefsKeys.SfxVolumeKey, runtimeSfxVolume);
+    }
+
+    public float GetSfxVolume() => runtimeSfxVolume;
+
+    private void OnApplicationQuit()
+    {
+        PlayerPrefs.Save();
     }
 }

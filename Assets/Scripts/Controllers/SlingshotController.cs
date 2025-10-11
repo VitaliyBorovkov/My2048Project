@@ -17,7 +17,6 @@ public sealed class SlingshotController : MonoBehaviour
     [Header("Flow")]
     [SerializeField] private float respawnDelay = 0.2f;
     [SerializeField] private LayerMask pickMask;
-    [SerializeField] private float maxRayDistance = 1000f;
 
     private IPointerInput iInput;
     private Coroutine respawnCoroutine;
@@ -81,39 +80,12 @@ public sealed class SlingshotController : MonoBehaviour
         SpawnReadyCube();
     }
 
-    //private void Update()
-    //{
-    //    if (slingshotView == null || iInput == null)
-    //    {
-    //        return;
-    //    }
-
-    //    switch (slingshotModel.State)
-    //    {
-    //        case SlingshotState.Idle:
-    //            if (iInput.IsDown() && PointerHitsCurrentCube())
-    //            {
-    //                slingshotModel.State = SlingshotState.Aiming;
-    //            }
-    //            break;
-
-    //        case SlingshotState.Aiming:
-    //            if (iInput.IsHeld())
-    //            {
-    //                slingshotAimer.UpdateAiming(iInput.GetScreenPosition(), slingshotModel.currentCube);
-    //            }
-    //            else if (iInput.IsUp())
-    //            {
-    //                FireAndScheduleRespawn();
-    //            }
-    //            break;
-    //    }
-    //}
-
     private void HandlePointerDown(Vector3 screenPosition)
     {
         if (slingshotModel.State != SlingshotState.Idle)
+        {
             return;
+        }
 
         if (PointerHitsCurrentCube(screenPosition))
         {
@@ -124,7 +96,9 @@ public sealed class SlingshotController : MonoBehaviour
     private void HandlePointerHold(Vector3 screenPosition)
     {
         if (slingshotModel.State != SlingshotState.Aiming)
+        {
             return;
+        }
 
         if (slingshotAimer != null)
         {
@@ -135,7 +109,9 @@ public sealed class SlingshotController : MonoBehaviour
     private void HandlePointerUp(Vector3 screenPosition)
     {
         if (slingshotModel.State != SlingshotState.Aiming)
+        {
             return;
+        }
 
         FireAndScheduleRespawn();
     }
@@ -161,6 +137,23 @@ public sealed class SlingshotController : MonoBehaviour
         }
 
         var rigidbody = cubeGameObject.GetComponent<Rigidbody>();
+        if (rigidbody != null)
+        {
+            rigidbody.isKinematic = true;
+            PhysicsResetter.ResetVelocity(cubeGameObject);
+        }
+
+        Vector3 spawnPos = spawnPoint.position;
+        if (slingshotView != null)
+        {
+            spawnPos += Vector3.up * slingshotView.SpawnHeightOffset;
+            slingshotView.SetCubePosition(cubeGameObject, spawnPos);
+        }
+        else
+        {
+            cubeGameObject.transform.position = spawnPos;
+        }
+
         slingshotModel.currentCube = cubeGameObject;
         slingshotModel.currentRigidbody = rigidbody;
         slingshotModel.State = SlingshotState.Idle;
@@ -207,7 +200,9 @@ public sealed class SlingshotController : MonoBehaviour
         yield return new WaitForSeconds(delay);
 
         if (!isActiveAndEnabled || !gameObject.activeInHierarchy)
+        {
             yield break;
+        }
 
         SpawnReadyCube();
         respawnCoroutine = null;
@@ -220,13 +215,29 @@ public sealed class SlingshotController : MonoBehaviour
             return false;
         }
 
-        Ray ray = slingshotView.MainCamera.ScreenPointToRay(iInput.GetScreenPosition());
-        if (Physics.Raycast(ray, out var hit, maxRayDistance, pickMask, QueryTriggerInteraction.Ignore))
+        if (iInput != null && iInput.TryGetLastPointerHit(out var hit))
         {
-            return hit.collider != null && hit.collider.transform.
-                IsChildOf(slingshotModel.currentCube.transform);
+            var hitCollider = hit.collider;
+            if (hitCollider == null)
+            {
+                return false;
+            }
+
+            int hitLayerBit = 1 << hitCollider.gameObject.layer;
+            bool layerMatch = ((hitLayerBit & (int)pickMask) != 0);
+
+            if (!layerMatch)
+            {
+                return false;
+            }
+
+            bool isSameOrChild = hitCollider.transform == slingshotModel.currentCube.transform ||
+                                 hitCollider.transform.IsChildOf(slingshotModel.currentCube.transform);
+            //Debug.Log($"{LOG}: IsSameOrChildOf(currentCube) = {isSameOrChild}");
+            return isSameOrChild;
         }
 
+        //Debug.Log($"{LOG}: PointerHitsCurrentCube -> no input hit available (no fallback).");
         return false;
     }
 }

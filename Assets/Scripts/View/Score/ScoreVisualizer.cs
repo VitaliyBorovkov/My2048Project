@@ -46,8 +46,7 @@ public sealed class ScoreVisualizer : MonoBehaviour
     {
         if (messageText != null)
         {
-            messageText.text = totalScore.ToString();
-            messageText.alpha = 1f;
+            messageText.text = totalScore.ToString("SCORE: " + totalScore);
         }
     }
 }

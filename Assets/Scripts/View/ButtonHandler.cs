@@ -16,8 +16,8 @@ public class ButtonHandler : MonoBehaviour
     [SerializeField] private Button playButton;
     [SerializeField] private Button quitButton;
     [SerializeField] private Button resumeButton;
-    [SerializeField] private Button restartButton;
-    [SerializeField] private Button settingsButton;
+    [SerializeField] private Button[] settingsButtons;
+    [SerializeField] private Button[] restartButtons;
     [SerializeField] private Button[] mainMenuButtons;
 
     private void Awake()
@@ -27,9 +27,12 @@ public class ButtonHandler : MonoBehaviour
             playButton.onClick.AddListener(PlayGame);
         }
 
-        if (restartButton != null)
+        foreach (var button in restartButtons)
         {
-            restartButton.onClick.AddListener(RestartScene);
+            if (button != null)
+            {
+                button.onClick.AddListener(RestartScene);
+            }
         }
 
         foreach (var button in mainMenuButtons)
@@ -38,7 +41,6 @@ public class ButtonHandler : MonoBehaviour
             {
                 button.onClick.AddListener(LoadMainMenu);
             }
-
         }
 
         if (quitButton != null)
@@ -51,9 +53,12 @@ public class ButtonHandler : MonoBehaviour
             resumeButton.onClick.AddListener(Resume);
         }
 
-        if (settingsButton != null)
+        foreach (var button in settingsButtons)
         {
-            settingsButton.onClick.AddListener(Settings);
+            if (button != null)
+            {
+                button.onClick.AddListener(Settings);
+            }
         }
     }
 

@@ -6,6 +6,7 @@ public sealed class SlingshotLauncher : MonoBehaviour
 
     [SerializeField] private float maxPullDistance = 3f;
     [SerializeField] private float maxForce = 25f;
+    [SerializeField] private float minLaunchDistance = 0.2f;
 
     public bool Launch(Rigidbody targetRigidbody, Vector3 spawnPointPosition, Vector3 cubePosition)
     {
@@ -18,17 +19,29 @@ public sealed class SlingshotLauncher : MonoBehaviour
         Vector3 pull = spawnPointPosition - cubePosition;
         float pullDistance = Mathf.Clamp(pull.magnitude, 0f, maxPullDistance);
 
-        if (pullDistance <= 0.01f)
+        if (pullDistance < minLaunchDistance)
         {
-            targetRigidbody.isKinematic = false;
-            Debug.Log($"{LOG}: Released with no pull.");
-            return true;
+            Debug.Log($"{LOG}: Launch aborted - pullDistance {pullDistance:F2} < minLaunchDistance {minLaunchDistance:F2}. Restoring cube to spawn point.");
+
+            targetRigidbody.isKinematic = true;
+
+            PhysicsResetter.ResetVelocity(targetRigidbody.gameObject);
+            CubeResetter.ResetState(targetRigidbody.gameObject);
+
+            targetRigidbody.transform.position = spawnPointPosition;
+
+            return false;
         }
+
+        PhysicsResetter.ResetVelocity(targetRigidbody.gameObject);
+
+        targetRigidbody.isKinematic = false;
+        targetRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        targetRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
 
         Vector3 direction = pull.normalized;
         float force = (pullDistance / maxPullDistance) * maxForce;
 
-        targetRigidbody.isKinematic = false;
         targetRigidbody.AddForce(direction * force, ForceMode.VelocityChange);
 
         return true;

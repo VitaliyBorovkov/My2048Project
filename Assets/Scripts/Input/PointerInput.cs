@@ -32,7 +32,7 @@ public sealed class PointerInput : MonoBehaviour, IPointerInput
             return;
         }
 #else
-        if (Input.touchCount == 0) 
+        if (Input.touchCount == 0)
         {
             return;
         }
@@ -40,11 +40,11 @@ public sealed class PointerInput : MonoBehaviour, IPointerInput
         lastScreenPosition = t.position;
         switch (t.phase)
         {
-            case TouchPhase.Began:      OnDown?.Invoke(lastScreenPosition); break;
+            case TouchPhase.Began: OnDown?.Invoke(lastScreenPosition); break;
             case TouchPhase.Moved:
             case TouchPhase.Stationary: OnHold?.Invoke(lastScreenPosition); break;
             case TouchPhase.Ended:
-            case TouchPhase.Canceled:   OnUp?.Invoke(lastScreenPosition); break;
+            case TouchPhase.Canceled: OnUp?.Invoke(lastScreenPosition); break;
         }
 #endif
     }
@@ -56,5 +56,11 @@ public sealed class PointerInput : MonoBehaviour, IPointerInput
             return new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
         }
         return lastScreenPosition;
+    }
+
+    public bool TryGetLastPointerHit(out RaycastHit hit)
+    {
+        hit = default;
+        return false;
     }
 }
